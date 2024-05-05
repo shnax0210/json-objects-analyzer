@@ -151,49 +151,49 @@ function isMissesPresent(result) {
         && result.countOfMisses !== COUNT_OF_MISSES_IS_NOT_APPLICABLE_VALUE;
 }
 
-function isPositiveCorrelationPresent(objects, firstResult, secondResult) {
+function isPositivePresenceMatch(objects, firstResult, secondResult) {
     return isMissesPresent(firstResult)
         && isMissesPresent(secondResult)
         && objects.every(object => areParentsPresentForPaths(object, firstResult.path, secondResult.path)
             && isValuePresentForPath(object, firstResult.path) === isValuePresentForPath(object, secondResult.path));
 }
 
-function isNegativeCorrelationPresent(objects, firstResult, secondResult) {
+function isNegativePresenceMatch(objects, firstResult, secondResult) {
     return isMissesPresent(firstResult)
         && isMissesPresent(secondResult)
         && objects.every(object => areParentsPresentForPaths(object, firstResult.path, secondResult.path)
             && isValuePresentForPath(object, firstResult.path) !== isValuePresentForPath(object, secondResult.path));
 }
 
-function findPresenceCorrelation(objects, sourceResult, targetResult) {
-    if (isPositiveCorrelationPresent(objects, sourceResult, targetResult)) {
+function findPresenceMatch(objects, sourceResult, targetResult) {
+    if (isPositivePresenceMatch(objects, sourceResult, targetResult)) {
         return "POSITIVE_PRESENCE";
     }
 
-    if (isNegativeCorrelationPresent(objects, sourceResult, targetResult)) {
+    if (isNegativePresenceMatch(objects, sourceResult, targetResult)) {
         return "NEGATIVE_PRESENCE";
     }
 }
 
-function findCorrelations(objects, sourceResult, targetResult) {
-    const correlations = [];
+function findMatches(objects, sourceResult, targetResult) {
+    const matches = [];
 
-    const presenceCorrelationType = findPresenceCorrelation(objects, sourceResult, targetResult);
-    if(presenceCorrelationType) {
-        correlations.push({
+    const presenceMatchingType = findPresenceMatch(objects, sourceResult, targetResult);
+    if(presenceMatchingType) {
+        matches.push({
             targetPath: targetResult.path,
-            type: presenceCorrelationType
+            type: presenceMatchingType
         });
     }
 
-    return correlations;
+    return matches;
 }
 
-function addCorrelations(objects, results) {
+function addMatches(objects, results) {
     results.forEach(sourceResult => {
-        sourceResult.correlations = results
+        sourceResult.matches = results
             .filter(targetResult => sourceResult.path !== targetResult.path)
-            .flatMap(targetResult => findCorrelations(objects, sourceResult, targetResult))
+            .flatMap(targetResult => findMatches(objects, sourceResult, targetResult))
     });
 }
 
@@ -220,7 +220,7 @@ function analyze(objects, config = {}) {
         addUniqueValuePercentage(result, path, propertyValues);
     });
 
-    addCorrelations(objects, Object.values(result));
+    addMatches(objects, Object.values(result));
 
     if (config.maxNumberOfUniqueValues) {
         Object.values(result).forEach(singleResult => {

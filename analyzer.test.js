@@ -20,7 +20,7 @@ test('Should handle simple objects', () => {
     //Then
     const expectedResult = [
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 0,
             "countOfUniqueValues": 2,
             "countOfValues": 2,
@@ -50,7 +50,7 @@ test('Should handle simple objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 0,
             "countOfUniqueValues": 2,
             "countOfValues": 2,
@@ -73,7 +73,7 @@ test('Should handle simple objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 0,
             "countOfUniqueValues": 1,
             "countOfValues": 2,
@@ -90,7 +90,7 @@ test('Should handle simple objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 1,
             "countOfUniqueValues": 1,
             "countOfValues": 1,
@@ -149,7 +149,7 @@ test('Should handle nested objects', () => {
     //Then
     const expectedResult = [
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 1,
             "countOfUniqueValues": 4,
             "countOfValues": 5,
@@ -192,7 +192,7 @@ test('Should handle nested objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 2,
             "countOfUniqueValues": 2,
             "countOfValues": 3,
@@ -215,7 +215,7 @@ test('Should handle nested objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 1,
             "countOfUniqueValues": 2,
             "countOfValues": 4,
@@ -270,7 +270,7 @@ test('Should handle simple arrays', () => {
     //Then
     const expectedResult = [
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 0,
             "countOfUniqueValues": 3,
             "countOfValues": 3,
@@ -309,7 +309,7 @@ test('Should handle simple arrays', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 0,
             "countOfUniqueValues": 3,
             "countOfValues": 3,
@@ -338,7 +338,7 @@ test('Should handle simple arrays', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 0,
             "countOfUniqueValues": 2,
             "countOfValues": 3,
@@ -361,7 +361,7 @@ test('Should handle simple arrays', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 2,
             "countOfUniqueValues": 1,
             "countOfValues": 1,
@@ -404,7 +404,7 @@ test('Should handle objects with array of primitives', () => {
     //Then
     const expectedResult = [
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 1,
             "countOfUniqueValues": 3,
             "countOfValues": 3,
@@ -438,7 +438,7 @@ test('Should handle objects with array of primitives', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": "NOT_APPLICABLE",
             "countOfUniqueValues": 2,
             "countOfValues": 3,
@@ -515,7 +515,7 @@ test('Should handle objects with array of objects', () => {
     //Then
     const expectedResult = [
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 1,
             "countOfUniqueValues": 4,
             "countOfValues": 5,
@@ -568,7 +568,7 @@ test('Should handle objects with array of objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": "NOT_APPLICABLE",
             "countOfUniqueValues": 3,
             "countOfValues": 5,
@@ -605,7 +605,7 @@ test('Should handle objects with array of objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 1,
             "countOfUniqueValues": 2,
             "countOfValues": 4,
@@ -628,7 +628,7 @@ test('Should handle objects with array of objects', () => {
             ]
         },
         {
-            "correlations": [],
+            "matches": [],
             "countOfMisses": 0,
             "countOfUniqueValues": 3,
             "countOfValues": 5,
@@ -680,7 +680,7 @@ test('Should find positive correlation of primitive fields presents', () => {
     //Then
     const expectedResult = [
         {
-            "correlations": [
+            "matches": [
                 {
                     "targetPath": "$.facebookNickname",
                     "type": "POSITIVE_PRESENCE"
@@ -710,7 +710,7 @@ test('Should find positive correlation of primitive fields presents', () => {
             ]
         },
         {
-            "correlations": [
+            "matches": [
                 {
                     "targetPath": "$.facebookId",
                     "type": "POSITIVE_PRESENCE"
@@ -740,7 +740,7 @@ test('Should find positive correlation of primitive fields presents', () => {
             ]
         },
         {
-            "correlations": [
+            "matches": [
                 {
                     "targetPath": "$.facebookId",
                     "type": "NEGATIVE_PRESENCE"
@@ -770,7 +770,7 @@ test('Should find positive correlation of primitive fields presents', () => {
             ]
         },
         {
-            "correlations": [
+            "matches": [
                 {
                     "targetPath": "$.facebookId",
                     "type": "NEGATIVE_PRESENCE"
