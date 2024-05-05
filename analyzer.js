@@ -165,23 +165,26 @@ function isNegativeCorrelationPresent(objects, firstResult, secondResult) {
             && isValuePresentForPath(object, firstResult.path) !== isValuePresentForPath(object, secondResult.path));
 }
 
+function findPresenceCorrelation(objects, sourceResult, targetResult) {
+    if (isPositiveCorrelationPresent(objects, sourceResult, targetResult)) {
+        return "POSITIVE_PRESENCE";
+    }
+
+    if (isNegativeCorrelationPresent(objects, sourceResult, targetResult)) {
+        return "NEGATIVE_PRESENCE";
+    }
+}
+
 function findCorrelations(objects, sourceResult, targetResult) {
     const correlations = [];
 
-    if (isPositiveCorrelationPresent(objects, sourceResult, targetResult)) {
+    const presenceCorrelationType = findPresenceCorrelation(objects, sourceResult, targetResult);
+    if(presenceCorrelationType) {
         correlations.push({
             targetPath: targetResult.path,
-            type: "POSITIVE_PRESENCE"
+            type: presenceCorrelationType
         });
-    } else {
-        if (isNegativeCorrelationPresent(objects, sourceResult, targetResult)) {
-            correlations.push({
-                targetPath: targetResult.path,
-                type: "NEGATIVE_PRESENCE"
-            });
-        }
     }
-
 
     return correlations;
 }
