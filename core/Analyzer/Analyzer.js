@@ -1,7 +1,8 @@
-const { findPropertyValues, findObjectsPaths } = require("../../utils/PathUtils/PathUtils");
-const { findUniqueValues } = require("../../utils/ArrayUtils/ArrayUtils");
-const { DEFAULT_CONFIG } = require("./Analyzer.constants");
+const {findPropertyValues, findObjectsPaths} = require("../../utils/PathUtils/PathUtils");
+const {findUniqueValues} = require("../../utils/ArrayUtils/ArrayUtils");
+const {DEFAULT_CONFIG} = require("./Analyzer.constants");
 
+const SQUASHED_VALUE_KEY = "SQUASHED";
 
 function determineValueType(value) {
     if (Array.isArray(value)) {
@@ -24,8 +25,8 @@ function determineType(uniqueValues) {
     return "mixed";
 }
 
-function buildMatchKey(sourceValue, targetValue) {
-    return `${JSON.stringify(sourceValue)}-${JSON.stringify(targetValue)}`;
+function buildMatchKey(sourceKey, targetKey) {
+    return `${JSON.stringify(sourceKey)}-${JSON.stringify(targetKey)}`;
 }
 
 function createInitialMatch(sourceResult, sourceValue, targetResult, targetValue) {
@@ -38,15 +39,18 @@ function createInitialMatch(sourceResult, sourceValue, targetResult, targetValue
     };
 }
 
-function createInitialMatches(sourceResult, targetResult) {
+function createInitialMatches(sourceResult, sourceUniqueValues, targetResult, targetUniqueValues) {
     const result = {};
 
-    for (const sourceValue of sourceResult.uniqueValues) {
-        for (const targetValue of targetResult.uniqueValues) {
-            result[`${buildMatchKey(sourceValue.value, targetValue.value)}`]
-                = createInitialMatch(sourceResult, sourceValue, targetResult, targetValue);
+    for (const sourceValue of sourceUniqueValues) {
+        for (const targetValue of targetUniqueValues) {
+            const sourceKey = sourceValue.isSquashed ? SQUASHED_VALUE_KEY : sourceValue.value;
+            const targetKey = targetValue.isSquashed ? SQUASHED_VALUE_KEY : targetValue.value;
+
+            result[buildMatchKey(sourceKey, targetKey)] = createInitialMatch(sourceResult, sourceValue, targetResult, targetValue);
         }
     }
+
 
     return result;
 }
@@ -59,8 +63,38 @@ function equalValues(value1, value2) {
     return JSON.stringify(value1) === JSON.stringify(value2);
 }
 
-function findMatches(objects, sourceResult, targetResult) {
-    let matches = createInitialMatches(sourceResult, targetResult);
+function squashValuesIfNeeded(result, config) {
+    const isSquashValuesNeeded = result.uniqueValues.length >= config.maxNumberOfUniqueValuesToSearchMatches
+
+    if (!isSquashValuesNeeded) {
+        return [isSquashValuesNeeded, result.uniqueValues]
+    }
+
+    const undefinedValue = result.uniqueValues.find(uniqueValue => uniqueValue.isUndefined)
+
+    if (!undefinedValue) {
+        return [isSquashValuesNeeded, []]
+    }
+
+    return [isSquashValuesNeeded, [
+        undefinedValue,
+        {
+            count: result.countOfValues - undefinedValue.count,
+            isUndefined: false,
+            isSquashed: true,
+        }
+    ]]
+}
+
+function findMatches(objects, sourceResult, targetResult, config) {
+    const [isSourceValuesSquashed, sourceUniqueValues] = squashValuesIfNeeded(sourceResult, config)
+    const [isTargetValuesSquashed, targetUniqueValues] = squashValuesIfNeeded(targetResult, config)
+
+    if (sourceUniqueValues.length === 0 || targetUniqueValues.length === 0) {
+        return [];
+    }
+
+    let matches = createInitialMatches(sourceResult, sourceUniqueValues, targetResult, targetUniqueValues);
 
     for (const object of objects) {
         const sourceValues = findPropertyValues([object], sourceResult.path);
@@ -68,62 +102,70 @@ function findMatches(objects, sourceResult, targetResult) {
 
         for (const sourceValue of sourceValues) {
             for (const targetValue of targetValues) {
-                matches[buildMatchKey(sourceValue, targetValue)].countOfMatches++;
+                const sourceKey = isSourceValuesSquashed && sourceValue !== undefined ? SQUASHED_VALUE_KEY : sourceValue;
+                const targetKey = isTargetValuesSquashed && targetValue !== undefined ? SQUASHED_VALUE_KEY : targetValue;
+
+                matches[buildMatchKey(sourceKey, targetKey)].countOfMatches++;
             }
         }
     }
 
     matches = Object.values(matches)
 
-    for (const sourceValue of sourceResult.uniqueValues) {
-        const totalNumberOfMatches = matches
-            .filter(match => equalValues(match.sourceValue.value, sourceValue.value))
-            .map(match => match.countOfMatches)
-            .reduce((a, b) => a + b, 0);
+    for (const sourceValue of sourceUniqueValues) {
+        const matchesWithSourceValue = matches.filter(
+            match => (match.sourceValue.isSquashed === true && sourceValue.isSquashed === true)
+                || equalValues(match.sourceValue.value, sourceValue.value));
 
-        matches
-            .filter(match => match.sourceValue.value === sourceValue.value)
-            .forEach(match => {
-                match.percentageOfMatches = roundNumber(match.countOfMatches / totalNumberOfMatches * 100, 2);
+        const totalNumberOfMatches = matchesWithSourceValue.map(match => match.countOfMatches).reduce((a, b) => a + b, 0);
 
-                match.countOfDisMatches = totalNumberOfMatches - match.countOfMatches;
-                match.percentageOfDisMatches = roundNumber(match.countOfDisMatches / totalNumberOfMatches * 100, 2);
-            });
+        matchesWithSourceValue.forEach(match => {
+            match.percentageOfMatches = roundNumber(match.countOfMatches / totalNumberOfMatches * 100, 2);
+
+            match.countOfDisMatches = totalNumberOfMatches - match.countOfMatches;
+            match.percentageOfDisMatches = roundNumber(match.countOfDisMatches / totalNumberOfMatches * 100, 2);
+        });
     }
 
     return matches;
 }
 
-function addMatches(objects, results) {
+function addMatches(objects, results, config) {
     results.forEach(sourceResult => {
         const matches = results
             .filter(targetResult => !sourceResult.path.includes(targetResult.path)
                 && !targetResult.path.includes(sourceResult.path)
-                && (sourceResult.uniqueValues.length > 1 && sourceResult.uniqueValues.length <= 5)
-                && (targetResult.uniqueValues.length > 1 && targetResult.uniqueValues.length <= 5))
-            .flatMap(targetResult => findMatches(objects, sourceResult, targetResult))
+                && sourceResult.uniqueValues.length >= config.minNumberOfUniqueValuesToSearchMatches
+                && targetResult.uniqueValues.length >= config.minNumberOfUniqueValuesToSearchMatches)
+            .flatMap(targetResult => findMatches(objects, sourceResult, targetResult, config))
 
-        if(matches.length > 0) {
+        if (matches.length > 0) {
             sourceResult.matches = matches
         }
     });
 }
 
 function countValues(objects, path) {
+    function createUniqueValue(propertyValue) {
+        const result = { count: 0 };
+
+        if (propertyValue === undefined) {
+            result.isUndefined = true;
+        } else {
+            result.value = propertyValue;
+            result.type = determineValueType(propertyValue);
+        }
+
+        return result;
+    }
+
     const propertyValues = findPropertyValues(objects, path);
 
     const propertyUniqueValues = Object.values(propertyValues.reduce((result, propertyValue) => {
         const propertyValueAsString = JSON.stringify(propertyValue) || 'undefined';
 
         if (!result[propertyValueAsString]) {
-            result[propertyValueAsString] = { count: 0 };
-
-            if (propertyValue === undefined) {
-                result[propertyValueAsString].isUndefined = true;
-            } else {
-                result[propertyValueAsString].value = propertyValue;
-                result[propertyValueAsString].type = determineValueType(propertyValue);
-            }
+            result[propertyValueAsString] = createUniqueValue(propertyValue);
         }
 
         result[propertyValueAsString].count++;
@@ -135,7 +177,7 @@ function countValues(objects, path) {
 }
 
 function analyze(objects, config = DEFAULT_CONFIG) {
-    config = { ...DEFAULT_CONFIG, ...config };
+    config = {...DEFAULT_CONFIG, ...config};
 
     let results = findObjectsPaths(objects)
         .sort()
@@ -151,11 +193,11 @@ function analyze(objects, config = DEFAULT_CONFIG) {
             };
         });
 
-    if(config.addMatches) {
-        addMatches(objects, results);
+    if (config.addMatches) {
+        addMatches(objects, results, config);
 
         results.forEach(singleResult => {
-            if(singleResult.matches) {
+            if (singleResult.matches) {
                 singleResult.matches = singleResult.matches.filter(match => match.percentageOfMatches === 100 || match.percentageOfDisMatches === 100);
             }
         })
