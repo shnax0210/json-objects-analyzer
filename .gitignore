@@ -3,3 +3,4 @@
 .DS_Store
 draft.js
 node_modules
+output.json
