@@ -1,4 +1,5 @@
 module.exports.DEFAULT_CONFIG = {
+    takeOnlyUniqueInputs: false,
     maxNumberOfUniqueValues: 10,
     skipRootUniqueValuesFromResult: true,
     skipPathsFromResult: [],

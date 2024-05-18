@@ -1,5 +1,5 @@
 const {findPropertyValues, findObjectsPaths} = require("../../utils/PathUtils/PathUtils");
-const {findUniqueValues} = require("../../utils/ArrayUtils/ArrayUtils");
+const {findUniqueValues, findUniqueObjects} = require("../../utils/ArrayUtils/ArrayUtils");
 const {DEFAULT_CONFIG} = require("./Analyzer.constants");
 
 const SQUASHED_VALUE_KEY = "SQUASHED";
@@ -178,6 +178,10 @@ function countValues(objects, path) {
 
 function analyze(objects, config = DEFAULT_CONFIG) {
     config = {...DEFAULT_CONFIG, ...config};
+
+    if(config.takeOnlyUniqueInputs) {
+        objects = findUniqueObjects(objects)
+    }
 
     let results = findObjectsPaths(objects)
         .sort()
