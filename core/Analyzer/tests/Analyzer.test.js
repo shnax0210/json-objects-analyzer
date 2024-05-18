@@ -10,14 +10,17 @@ const simpleStatisticTestCases = [
 
 const matchesTestCases = [
     require('../fixtures/Matches/SimpleMatches'),
+    require('../fixtures/Matches/FieldSquashingMatches'),
 ]
 
-test('Should simple statistic test cases pass', () => {
-    checkTestCases(simpleStatisticTestCases);
-});
+describe('Analyzer test', () => {
+    test('Should simple statistic test cases pass', () => {
+        checkTestCases(simpleStatisticTestCases);
+    });
 
-test('Should matches test cases pass', () => {
-    checkTestCases(matchesTestCases);
+    test('Should matches test cases pass', () => {
+        checkTestCases(matchesTestCases);
+    });
 });
 
 function checkTestCases(testCases) {

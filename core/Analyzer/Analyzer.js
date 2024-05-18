@@ -1,4 +1,4 @@
-const {findPropertyValues, findObjectsPaths} = require("../../utils/PathUtils/PathUtils");
+const {findPropertyValues, findObjectsPaths, getPathDeep} = require("../../utils/PathUtils/PathUtils");
 const {findUniqueValues, findUniqueObjects} = require("../../utils/ArrayUtils/ArrayUtils");
 const {DEFAULT_CONFIG} = require("./Analyzer.constants");
 
@@ -64,7 +64,17 @@ function equalValues(value1, value2) {
 }
 
 function squashValuesIfNeeded(result, config) {
+    function isFieldMatchedAsNeededForSquash(result, config) {
+        function isFieldMatched(path, patterns) {
+            return patterns.some(pattern => path.match(new RegExp(pattern)));
+        }
+
+        return isFieldMatched(result.path, config.defaultPatternsOfFieldPathsToSquashValuesInMatches)
+            || isFieldMatched(result.path, config.patternsOfFieldPathsToSquashValuesInMatches)
+    }
+
     const isSquashValuesNeeded = result.uniqueValues.length >= config.minNumberOfUniqueValuesToSquashValuesInMatches
+        || isFieldMatchedAsNeededForSquash(result, config);
 
     if (!isSquashValuesNeeded) {
         return [isSquashValuesNeeded, result.uniqueValues]
@@ -133,8 +143,9 @@ function findMatches(objects, sourceResult, targetResult, config) {
 function addMatches(objects, results, config) {
     results.forEach(sourceResult => {
         const matches = results
-            .filter(targetResult => !sourceResult.path.includes(targetResult.path)
-                && !targetResult.path.includes(sourceResult.path)
+            .filter(targetResult =>
+                ((sourceResult.path !== targetResult.path && getPathDeep(sourceResult.path) === getPathDeep(targetResult.path))
+                    || (!sourceResult.path.includes(targetResult.path) && !targetResult.path.includes(sourceResult.path)))
                 && sourceResult.uniqueValues.length >= config.minNumberOfUniqueValuesToSearchMatches
                 && targetResult.uniqueValues.length >= config.minNumberOfUniqueValuesToSearchMatches)
             .flatMap(targetResult => findMatches(objects, sourceResult, targetResult, config))
@@ -147,7 +158,7 @@ function addMatches(objects, results, config) {
 
 function countValues(objects, path) {
     function createUniqueValue(propertyValue) {
-        const result = { count: 0 };
+        const result = {count: 0};
 
         if (propertyValue === undefined) {
             result.isUndefined = true;
@@ -179,7 +190,7 @@ function countValues(objects, path) {
 function analyze(objects, config = DEFAULT_CONFIG) {
     config = {...DEFAULT_CONFIG, ...config};
 
-    if(config.takeOnlyUniqueInputs) {
+    if (config.takeOnlyUniqueInputs) {
         objects = findUniqueObjects(objects)
     }
 
@@ -202,7 +213,9 @@ function analyze(objects, config = DEFAULT_CONFIG) {
 
         results.forEach(singleResult => {
             if (singleResult.matches) {
-                singleResult.matches = singleResult.matches.filter(match => match.percentageOfMatches === 100 || match.percentageOfDisMatches === 100);
+                singleResult.matches = singleResult.matches
+                    .filter(match => match.percentageOfMatches >= config.minPercentageOfMatches
+                        || match.percentageOfDisMatches === config.minPercentageOfDisMatches);
             }
         })
     }

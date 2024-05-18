@@ -1,6 +1,9 @@
 {
   "name": "json-objects-analyzer",
   "version": "1.0.0",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "jsonpath": "1.1.1",
     "yargs": "17.7.2"

@@ -1,4 +1,4 @@
-module.exports.name = 'Should handle nested objects';
+module.exports.name = 'Should find simple matches';
 
 module.exports.input = [
     {

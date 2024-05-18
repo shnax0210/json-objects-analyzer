@@ -60,6 +60,18 @@ function fetchParentPath(path) {
     return path.substring(0, lastDotIndex);
 }
 
+function getPathDeep(path) {
+    let result = 0;
+    let currentPath = path;
+
+    do {
+        currentPath = fetchParentPath(currentPath)
+        result++;
+    } while (currentPath)
+
+    return result;
+}
+
 function findPropertyValues(objects, path) {
     const propertyValues = objects.flatMap(object => jsonpath.query(object, path));
 
@@ -79,3 +91,4 @@ function findPropertyValues(objects, path) {
 
 module.exports.findObjectsPaths = findObjectsPaths;
 module.exports.findPropertyValues = findPropertyValues;
+module.exports.getPathDeep = getPathDeep;
