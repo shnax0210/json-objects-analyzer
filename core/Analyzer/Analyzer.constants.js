@@ -14,3 +14,5 @@ module.exports.DEFAULT_CONFIG = {
     defaultPatternsOfFieldPathsToSquashValuesInMatches: ['.*Date.*', '.*Time.*'],
     patternsOfFieldPathsToSquashValuesInMatches: []
 };
+
+module.exports.SQUASHED_VALUE_KEY = "SQUASHED";

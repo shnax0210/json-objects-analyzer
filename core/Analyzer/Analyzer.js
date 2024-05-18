@@ -1,8 +1,6 @@
 const {findPropertyValues, findObjectsPaths, getPathDeep} = require("../../utils/PathUtils/PathUtils");
 const {findUniqueValues, findUniqueObjects} = require("../../utils/ArrayUtils/ArrayUtils");
-const {DEFAULT_CONFIG} = require("./Analyzer.constants");
-
-const SQUASHED_VALUE_KEY = "SQUASHED";
+const {DEFAULT_CONFIG, SQUASHED_VALUE_KEY} = require("./Analyzer.constants");
 
 function determineValueType(value) {
     if (Array.isArray(value)) {
