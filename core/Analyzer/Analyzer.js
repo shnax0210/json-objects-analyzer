@@ -64,7 +64,7 @@ function equalValues(value1, value2) {
 }
 
 function squashValuesIfNeeded(result, config) {
-    const isSquashValuesNeeded = result.uniqueValues.length >= config.maxNumberOfUniqueValuesToSearchMatches
+    const isSquashValuesNeeded = result.uniqueValues.length >= config.minNumberOfUniqueValuesToSquashValuesInMatches
 
     if (!isSquashValuesNeeded) {
         return [isSquashValuesNeeded, result.uniqueValues]

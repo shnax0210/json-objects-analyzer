@@ -5,5 +5,5 @@ module.exports.DEFAULT_CONFIG = {
     skipPathsFromResult: [],
     addMatches: true,
     minNumberOfUniqueValuesToSearchMatches: 2,
-    maxNumberOfUniqueValuesToSearchMatches: 10,
+    minNumberOfUniqueValuesToSquashValuesInMatches: 10,
 };
